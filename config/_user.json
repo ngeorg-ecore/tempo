@@ -1,0 +1,39 @@
+{
+  "username": "your.user@e-core.com",
+  "password": "y0urp4ss",
+  "user_key": "JIRAUSER30xxx",
+  "domain": "e-core.com",
+  "senior": {
+    "start_time_placeholder": "[check in]",
+    "lunch_time_placeholder": "[lunch time]",
+    "end_time_placeholder": "[check out]",
+    "last_event_of_the_day": "[check out]",
+    "times": {
+      "entry1": "09:00",
+      "leave1": "12:00",
+      "entry2": "13:00",
+      "leave2": "18:00"
+    }
+  },
+  "tempo": {
+    "aliases":
+      {
+        "repetitive event name":  "CBU-xxxxx"
+      }
+    ,
+    "role_selection_policy": "first|random|manual",
+    "on_call_always_false": true
+  },
+  "calendar": {
+    "issue_key_separator": " // ",
+    "non_billable": [" --nb", " --NB", " --non-billable"],
+    "internal_meetings_issue": "CBU-XXXXX",
+    "internal_hour_events": ["CBU US - Daily Checkpoint", "All-Hands 2022", "Weekly All Hands - CBU", "Off topic - CBU US Team"],
+    "events_to_ignore": ["Coffee Break - CBU POA Team", "Guided Meditation Session", "Lunch (via Clockwise)"]
+  },
+  "start_autologs_date": "01/06/2022",
+  "checkout_days": 20,
+  "misc": {
+    "font": "monospace"
+  }
+}

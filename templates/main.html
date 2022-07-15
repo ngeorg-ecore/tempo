@@ -1,0 +1,223 @@
+{% extends "template.html" %} {% block content %}
+
+<div class="card-body row">
+    <h3>Time Auditing Tool <span class="float-end"><a style="text-decoration: none; font-size: 12px"   href="https://jira.e-core.com/secure/Tempo.jspa#/my-work/week?type=TIME">Tempo</a></span></h3>
+  <div onclick="trigger_feed_database()" class="btn btn-sm btn-outline-dark" style="border-radius: 0px; margin: 5px; margin-bottom: 15px; width: fit-content;">Feed Database</div>
+
+  <div onclick="confirm_click('/safe/create_database/soft', 'Are you sure?')" class="btn btn-sm btn-outline-danger" style="border-radius: 0px; margin: 5px; margin-bottom: 15px; width: fit-content;">Wipe Database</div>
+  <div class="row">
+    <div class="col-2">
+      <label for="start_date_feed" class="form-label">From Date</label>
+      <div class="input-group mb-3">
+        <input type="date" class="form-control form-control-sm" placeholder="[check in]" id="start_date_feed" value="{{objects.today}}" aria-describedby="basic-addon3">
+      </div>
+    </div>
+    <div class="time col-2">
+        <label for="end_date_feed" class="form-label">To Date</label>
+      <div class="input-group mb-3">
+        <input type="date" class="form-control form-control-sm" placeholder="[check in]" id="end_date_feed" value="{{objects.today}}" aria-describedby="basic-addon3">
+      </div>
+    </div>
+
+  </div>
+</div>
+<hr>
+<!-- Configuration Block -->
+<div id="app">
+
+  <!-- Time Log Grid -->
+  <div class="row" style="margin: 3px">
+
+    <div class="table-responsive col-8"> {% for date, cal_events in objects.filtered_events.items() %} <h3>{{date}}</h3>
+      <table class="table table-hover table-sm ">
+        <thead>
+          <tr>
+            <th scope="col" class="col" style="width: 5%; justify-text: center;">Issue</th>
+            <th scope="col" class="col-2">Summary</th>
+            <th scope="col" class="col-3">Description</th>
+            <th scope="col" class="col" style="width: 10%;">Role</th>
+            <th scope="col" class="col" style="width: 4%;">Start</th>
+            <th scope="col" class="col" style="width: 4%;">End</th>
+            <th scope="col" class="col" style="width: 2%;">Actions</th>
+          </tr>
+        </thead>
+        <tbody> {% for cal_event in cal_events %} <tr id="event|{{cal_event.id}}">
+            <th>
+              <input type="text" id="issue_key|{{cal_event.id}}" onblur="update_issue('{{cal_event.issue_key}}', {{cal_event.id}}); edit_data('calendar_event', {{cal_event.id}}, 'issue_key', 'str');" class="form-control form-control-sm" placeholder="{{cal_event.issue_key}}" value="{{cal_event.issue_key if '-' in cal_event.issue_key else ''}}">
+            </th>
+            <!-- Worked on issue CBU-12345 -->
+            <th>
+              <input type="text" style="font-size: 11px;" id="summary|{{cal_event.id}}" disabled class="form-control form-control-sm " value="{{cal_event.original_issue_summary}}">
+            </th>
+            <!-- Worked on issue CBU-12345 -->
+            <td>
+              <input type="text" id="description|{{cal_event.id}}" onblur="edit_data('calendar_event', {{cal_event.id}}, 'description', 'str')" class="form-control form-control-sm" placeholder="{{cal_event.description}}" value="{{cal_event.description}}">
+            </td>
+            <td>
+              <select style="font-size: 10px" id="role|{{cal_event.id}}" onchange="edit_role('{{cal_event.id}}')" class="form-control form-select form-select-sm" aria-label="Default select example">
+                <option selected value="{{cal_event.tempo_role_id}}">{{cal_event.tempo_role_value}}</option> {% for role in cal_event.roles %} <option value="{{role.key}}">{{role.value}}</option> {% endfor %}
+              </select>
+            </td>
+            <!-- Worked on issue CBU-12345 -->
+            <td>
+              <input type="text" id="start_time|{{cal_event.id}}" onblur="edit_data('calendar_event', {{cal_event.id}}, 'start_time', 'str')" class="form-control form-control-sm" placeholder="{{cal_event.start_time}}" value="{{cal_event.start_time}}">
+            </td>
+            <!-- Worked on issue CBU-12345 -->
+            <td>
+              <input type="text" id="end_time|{{cal_event.id}}" onblur="edit_data('calendar_event', {{cal_event.id}}, 'end_time', 'str')" class="form-control form-control-sm" placeholder="{{cal_event.end_time}}" value="{{cal_event.end_time}}">
+            </td>
+            <!-- Worked on issue CBU-12345 -->
+            <td>
+              <div class="btn btn-sm btn-primary" id="log_btn_{{cal_event.id}}" style="width: fit-content;" onclick="log_row({{cal_event.id}})">
+                <i class="bi bi-clock-history"></i>
+              </div>
+              <div class="btn btn-sm btn-danger" style="width: fit-content;" onclick="delete_event({{cal_event.id}}, '{{cal_event.original_issue_summary}}')">
+                <i class="bi bi-trash"></i>
+              </div>
+            </td>
+          </tr> {% endfor %}
+          <!-- For Loop ends here -->
+          <tr>
+            <th scope="col"></th>
+            <th scope="col"></th>
+            <th scope="col"></th>
+            <th scope="col"></th>
+            <th scope="col"></th>
+            <th scope="col"></th>
+            <th scope="col">
+              <div class="btn btn-sm btn-success" style="width: 100%;">Bulk</div>
+            </th>
+          </tr>
+        </tbody>
+        <!-- <caption> Captions of the table </caption> -->
+      </table> {% endfor %}
+
+      <div class="table-responsive col-12" style="">
+      <h3> Senior Dates </h3>
+      <table class="table table-striped table-hover table-bordered table-sm table-dark ">
+        <thead>
+          <tr>
+            <th scope="col" class="col-1">Day</th>
+            <th scope="col" class="col-1">Weekday</th>
+            <th scope="col" class="col-1">entry</th>
+            <th scope="col" class="col-1">go lunch</th>
+            <th scope="col" class="col-1">end lunch</th>
+            <th scope="col" class="col-1">leave</th>
+            <th scope="col" class="col-1">other</th>
+            <th scope="col" class="col-1">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- For Loop starts here --> {% for sr in objects.senior_registers %} <tr>
+            <th>{{sr.senior_date}}</th>
+            <th>{{sr.weekday}}</th>
+            <th>
+              <input type="text" id="entry_1|{{sr.id}}" class="form-control form-control-sm" placeholder="{{sr.entry_1}}" value="{{sr.entry_1}}">
+            </th>
+            <th>
+              <input type="text" id="leave_1|{{sr.id}}" class="form-control form-control-sm" placeholder="{{sr.leave_1}}" value="{{sr.leave_1}}">
+            </th>
+            <th>
+              <input type="text" id="entry_2|{{sr.id}}" class="form-control form-control-sm" placeholder="{{sr.entry_2}}" value="{{sr.entry_2}}">
+            </th>
+            <th>
+              <input type="text" id="leave_2|{{sr.id}}" class="form-control form-control-sm" placeholder="{{sr.leave_2}}" value="{{sr.leave_2}}">
+            </th>
+            <th>
+              <input type="text" id="extras|{{sr.id}}" class="form-control form-control-sm" placeholder="18:15-18:30" value="">
+            </th>
+            <th>
+              <div class="btn btn-sm btn-success">Log</div>
+            </th>
+            <!-- Worked on issue CBU-12345 -->
+          </tr> {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    </div>
+    <div class="col-4">
+
+      <h3>
+        <b>Initiatives Structure</b>
+      </h3>
+      <div id="initiatives">
+        <p style="text-align: justify;">Here you can retrieve your initiatives. Add the issue key of the initiative you are working on a project and it will retrieve all the epics for that initiative.</p>
+        <div class="row">
+          <div class="col-3">
+            <div class="input-group mb-3">
+              <input type="text" placeholder="CBU-15200" class="form-control form-control-sm" id="initiative_issue_key" aria-describedby="basic-addon3">
+            </div>
+          </div>
+          <div class="col-2">
+            <div onclick="add_initiative()" class="btn btn-sm btn-outline-success" style="width: 100%">+Add</div>
+          </div>
+        </div>
+      </div>
+      <div class="btn btn-outline-dark" style="margin-top: 5px; font-size: 10px;" onclick="var initiative_window = element('initiative_window'); if (initiative_window.style.display=='none') {initiative_window.style.display='block'; this.innerHTML = 'Hide Structure'} else {initiative_window.style.display='none'; this.innerHTML = 'List Structure'}">List Structure</div>
+
+      <div id="initiative_window" style="display: none;">
+
+          {% for initiative in objects.initiatives %}
+        <div class="card mt-2" >
+          <div class="card-body">
+
+        <div class="row" onclick="show_epics({{initiative.id}})">
+          <div class="col-9"><div class="btn btn-sm" style="font-size: 14px"><b>{{initiative.summary}}</b></div></div>
+          <div class="col-3"><div class="btn btn-sm btn-outline-dark float-end"><b>Show Epics</b></div></div>
+        </div>
+
+        <div id="epics_{{initiative.id}}" style="display: none;">
+          <ul class="list-group" style="margin-top: 10px">
+          {% for epic in initiative.epics %}
+            <li class="list-group-item" style="font-size: 10px">[<b>{{epic.key}}</b>] {{epic.fields.summary}}</li>
+          {% endfor %}
+            </ul>
+        </div>     </div></div>
+
+{% endfor %}
+      </div>
+
+      <hr>
+      <h3>
+        <b>Time Buddy</b>
+      </h3>
+      <p>Helps with your accounts and initiatives.</p>
+      <hr>
+      <div id="create_alias">
+        <h5>Create New Alias</h5>
+        <p style="text-align: justify;">An alias is a string match that when found assigns an issue key to that event. Example: If you set your alias key to "CBU Daily US" and as the key, you register your issue for internal hours as CBU-10337, it will set the issue key as CBU-10337 when it reads the event on your calendar.</p>
+        <div class="row">
+          <div class="col-6">
+            <div class="input-group mb-3">
+              <input type="text" placeholder="CBU US - Daily Checkpoint" class="form-control form-control-sm" id="alias_key" aria-describedby="basic-addon3">
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="input-group mb-3 col-4">
+              <input type="text" placeholder="CBU-15200" class="form-control form-control-sm" id="alias_value" aria-describedby="basic-addon3">
+            </div>
+          </div>
+          <div class="col-2">
+            <div onclick="create_alias()" class="btn btn-sm btn-outline-success" style="width: 100%">+Add</div>
+          </div>
+        </div>
+      </div>
+      <div class="btn btn-outline-dark" style="margin-top: 5px; font-size: 10px;" onclick="var aliases_window = element('aliases'); if (aliases_window.style.display=='none') {aliases_window.style.display='block'; this.innerHTML = 'Hide Aliases'} else {aliases_window.style.display='none'; this.innerHTML = 'Show Aliases'}">Show Aliases</div>
+      <div id="aliases" style="display:none;">
+        <ul class="list-group" style="margin-top: 15px;"> {% for alias in objects.aliases %} <li class="list-group-item">[{{alias.issue_key}}] {{alias.match}}
+            <span class="float-end">
+              <a style="font-size: 12px; color: red; text-decoration: none;" href="/delete/alias/{{alias.id}}">x</a>
+            </span>
+          </li> {% endfor %} </ul>
+      </div>
+
+
+
+
+    </div>
+
+  </div>
+</div>
+<!-- Functions Block -->
+<!-- Senior -->
+<!-- Configuration Block --> {% endblock %}
